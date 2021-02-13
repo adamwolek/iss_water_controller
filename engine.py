@@ -1,9 +1,9 @@
 import threading
 import time
 
-from src.fuzzy import FuzzyRegulator
-from src.models import OneInOneOutModel
-from src.pid import PID
+from fuzzy import FuzzyRegulator
+from models import OneInOneOutModel
+from pid import PID
 
 exitFlag = 0
 

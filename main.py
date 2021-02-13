@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from src.models import OneInOneOutModel
-from src.pid import PID
+from models import OneInOneOutModel
+from pid import PID
 
 base_field = 1.5
 beta = 0.0035
