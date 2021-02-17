@@ -1,30 +1,91 @@
-
-
-
+from base_of_regules import BaseOfRegules
+from fuzzy_parameter import FuzzyParameter
+from fuzzy_set import FuzzySet, FirstFuzzySet, LastFuzzySet
+import numpy as np
 
 class FuzzyRegulator:
 
     def __init__(self, ):
-        e_du = {"ce_du": "BDU", "ce_su": "BDU", "ce_mu": "BDU", "ce_z": "DU", "ce_md": "SU", "ce_sd": "MU", "ce_dd": "Z"}
-        e_su = {"ce_du": "BDU", "ce_su": "BDU", "ce_mu": "DU", "ce_z": "SU", "ce_md": "MU", "ce_sd": "Z", "ce_dd": "MD"}
-        e_mu = {"ce_du": "BDU", "ce_su": "DU", "ce_mu": "SU", "ce_z": "MU", "ce_md": "Z", "ce_sd": "MD", "ce_dd": "SD"}
-        e_z = {"ce_du": "DU", "ce_su": "SU", "ce_mu": "MU", "ce_z": "Z", "ce_md": "MD", "ce_sd": "SD", "ce_dd": "DD"}
-        e_md = {"ce_du": "", "ce_su": "", "ce_mu": "", "ce_z": "", "ce_md": "", "ce_sd": "", "ce_dd": ""}
-        e_sd = {"ce_du": "", "ce_su": "", "ce_mu": "", "ce_z": "", "ce_md": "", "ce_sd": "", "ce_dd": ""}
-        e_dd = {"ce_du": "", "ce_su": "", "ce_mu": "", "ce_z": "", "ce_md": "", "ce_sd": "", "ce_dd": ""}
+        self.base_of_regules = BaseOfRegules()
+        self.sum_of_uchyb = 0
+        self.fuzzy_sets = {
+            "du": FirstFuzzySet(-3, "du"),
+            "su": FuzzySet(-2, "su"),
+            "mu": FuzzySet(-1, "mu"),
+            "z": FuzzySet(0, "z"),
+            "md": FuzzySet(1, "md"),
+            "sd": FuzzySet(2, "sd"),
+            "dd": LastFuzzySet(3, "dd")
+        }
 
-    # def blur(self, input):
 
+    def proces(self, uchyb, loop_time):
 
-    def proces(self, input):
-        temp = self.Kp * input
-        p_part = temp
+        if -0.2 < self.sum_of_uchyb + (loop_time * uchyb) < 0.2:
+            self.sum_of_uchyb += (loop_time * uchyb)
 
-        self.integral_helper = self.integral_helper + (temp * self.period) * 1 / self.Ti
-        i_part = self.integral_helper
+        # Rozmywanie
+        fuzzy_e_values = self.blur(uchyb)
+        fuzzy_se_values = self.blur(self.sum_of_uchyb)
 
-        d_part = self.Td * ((temp - self.last_value) / self.period)
+        # Wnioskowanie
+        active_regules = []
+        for e in fuzzy_e_values:
+            for se in fuzzy_se_values:
+                active_regules.append(self.apply_regule(e, se))
 
-        result = p_part + i_part + d_part
-        self.last_value = input
-        return result
+        #Wyostrzanie
+
+        # control = self.midleOfMaxima(active_regules)
+
+        control = self.centerOfWeight(active_regules)
+
+        return control / 5
+
+    def centerOfWeight(self, active_regules):
+        nominator = 0
+        denominator = 0
+        width_of_micro_square = 0.01
+        for y in np.arange(-6, 6, width_of_micro_square):
+            belongings = []
+            for parameter in active_regules:
+                belongings.append(parameter.getBelonging(y))
+            u = max(belongings)
+            nominator += y * u * width_of_micro_square
+            denominator += u * width_of_micro_square
+        yc = nominator / denominator
+        return yc
+
+    def midleOfMaxima(self, active_regules):
+        levels = []
+        for parameter in active_regules:
+            levels.append(parameter.level_of_belonging)
+        max_level = max(levels)
+        max_parameters = []
+        for parameter in active_regules:
+            if parameter.level_of_belonging == max_level:
+                max_parameters.append(parameter)
+        middle_of_maxima = self.calculateMiddleOfMaxima(max_parameters)
+        return middle_of_maxima
+
+    def calculateMiddleOfMaxima(self, max_parameters):
+        max_parameters.sort(key=lambda fuzzy_parameter: fuzzy_parameter.fuzzy_set.center)
+        first_set = max_parameters[0]
+        last_set = max_parameters[-1]
+        middle_of_maxima = (first_set.fuzzy_set.center + last_set.fuzzy_set.center) / 2
+        return middle_of_maxima
+
+    def apply_regule(self, fuzzy_e, fuzzy_se):
+        active_regule_name = self.base_of_regules \
+            .data['e_' + str(fuzzy_e.fuzzy_set.name)]['se_' + str(fuzzy_se.fuzzy_set.name)]
+        active_regule_value = min(fuzzy_e.level_of_belonging, fuzzy_se.level_of_belonging)
+        return FuzzyParameter(active_regule_value, self.fuzzy_sets[active_regule_name.lower()])
+
+    def blur(self, sharp_value):
+        non_zero_fuzzy_parameters = []
+        for fuzzy_set in self.fuzzy_sets.values():
+            value = fuzzy_set.blur(sharp_value)
+            if value > 0:
+                non_zero_fuzzy_parameters.append(FuzzyParameter(value, fuzzy_set))
+        return non_zero_fuzzy_parameters
+

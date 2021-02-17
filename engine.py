@@ -15,7 +15,7 @@ class Engine (threading.Thread):
         self.counter = counter
         self.waterLevel = 0
         self.inflow = 0
-        self.currentRegulator = 'pid'
+        self.currentRegulator = 'fuzzy'
 
     def run(self):
         print ("Starting " + self.name)
@@ -25,33 +25,36 @@ class Engine (threading.Thread):
     def execute(self):
         base_field = 1.5
         beta = 0.0035
-        period = 0.2
+        period = 0.05
         h_init = 0
-        time_of_simulation = 3600
-        number_of_samples = int(time_of_simulation / period)
         self.aim = 5
-        self.pid = PID(0.5, 1000, 0.01, h_init, period)
+        self.pid = PID(0.5, 1000, 0.01, h_init)
         self.fuzzy = FuzzyRegulator()
         self.model = OneInOneOutModel(base_field, beta, period, h_init)
+        self.last_time = time.process_time()
 
-        x = [0]
-        y = [h_init]
+
+        last_h = h_init
         while True:
-            current_time = time.process_time()
             time.sleep(period)
-            current_q = 0.005
-            uchyb = self.aim - y[-1]
+            current_time = time.process_time()
+            loop_time = current_time - self.last_time
+            self.last_time = current_time
 
-            steering_signal = self.pid.proces(uchyb)
+            uchyb = self.aim - last_h
+            if (self.currentRegulator == 'pid'):
+                steering_signal = self.pid.proces(uchyb, loop_time)
+            else:
+                steering_signal = self.fuzzy.proces(uchyb, loop_time)
+
             if steering_signal >= 0:
-                self.inflow = self.pid.proces(uchyb)
+                self.inflow = steering_signal
             else:
                 self.inflow = 0
 
             self.waterLevel = self.model.next_step(self.inflow)
 
-            x.append(current_time / 3600)
-            y.append(self.waterLevel)
+            last_h = self.waterLevel
             # print(self.waterLevel)
 
 
