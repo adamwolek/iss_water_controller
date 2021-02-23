@@ -47,7 +47,7 @@ def modelState():
             app.engineThread.inflow = flask.request.json['inflow'] / 1000
         if 'currentRegulator' in flask.request.json:
             app.engineThread.currentRegulator = flask.request.json['currentRegulator']
-        return 'OK'
+        return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'waterLevel': app.engineThread.waterLevel,
@@ -62,7 +62,7 @@ def modelParameters():
             app.engineThread.model.base_field = flask.request.json['baseField']
         if 'setLevel' in flask.request.json:
             app.engineThread.aim = flask.request.json['setLevel']
-        return 'OK'
+        return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'baseField': app.engineThread.model.base_field,
@@ -79,7 +79,7 @@ def pidParameters():
             app.engineThread.pid.Ti = flask.request.json['ti']
         if 'td' in flask.request.json:
             app.engineThread.pid.Td = flask.request.json['td']
-        return 'OK'
+        return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'kp': app.engineThread.pid.Kp,
@@ -92,7 +92,7 @@ def fuzzyParameters():
     if request.method == 'POST':
         if 'kp' in flask.request.json:
             app.engineThread.fuzzy.base_of_regules.data = flask.request.json['baseOfRules']
-        return 'OK'
+        return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             "baseOfRules": app.engineThread.fuzzy.base_of_regules.data

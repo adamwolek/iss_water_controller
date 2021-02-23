@@ -13,10 +13,10 @@ class PID:
         temp = self.Kp * input
         p_part = temp
 
-        self.integral_helper = self.integral_helper + (temp * self.loop_time) * 1/self.Ti
+        self.integral_helper = self.integral_helper + (temp * loop_time) * 1/self.Ti
         i_part = self.integral_helper
 
-        d_part = self.Td * ((temp - self.last_value) / self.period)
+        d_part = self.Td * ((temp - self.last_value) / loop_time)
 
         result = p_part + i_part + d_part
         self.last_value = input

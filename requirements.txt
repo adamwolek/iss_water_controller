@@ -1,2 +1,4 @@
 matplotlib~=3.3.2
 Flask~=1.1.2
+setuptools
+psycopg2-binary

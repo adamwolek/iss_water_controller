@@ -15,7 +15,7 @@ class Engine (threading.Thread):
         self.counter = counter
         self.waterLevel = 0
         self.inflow = 0
-        self.currentRegulator = 'fuzzy'
+        self.currentRegulator = 'pid'
 
     def run(self):
         print ("Starting " + self.name)
