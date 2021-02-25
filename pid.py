@@ -14,6 +14,8 @@ class PID:
         p_part = temp
 
         self.integral_helper = self.integral_helper + (temp * loop_time) * 1/self.Ti
+        if self.integral_helper > 5: self.integral_helper = 5
+        elif self.integral_helper < -5: self.integral_helper = -5
         i_part = self.integral_helper
 
         d_part = self.Td * ((temp - self.last_value) / loop_time)

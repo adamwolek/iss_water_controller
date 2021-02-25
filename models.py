@@ -7,12 +7,13 @@ class OneInOneOutModel:
         self.base_field = base_field
         self.beta = beta
         self.period = period
-        self.h_history = [h_init]
+        #self.h_history = [h_init]
+        self.last_h = 0
 
     def next_step(self, current_q):
-        last_h = self.h_history[-1]
+        last_h = self.last_h
         result = 1/self.base_field * (-self.beta * math.sqrt(last_h) + current_q) * self.period + last_h
-        self.h_history.append(result)
+        self.last_h = result
         return result
 
 

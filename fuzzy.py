@@ -21,7 +21,7 @@ class FuzzyRegulator:
 
     def proces(self, uchyb, loop_time):
 
-        if -0.2 < self.sum_of_uchyb + (loop_time * uchyb) < 0.2:
+        if -0.5 < self.sum_of_uchyb + (loop_time * uchyb) < 0.5:
             self.sum_of_uchyb += (loop_time * uchyb)
 
         # Rozmywanie

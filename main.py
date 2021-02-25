@@ -5,6 +5,7 @@ from engine import Engine
 import os
 from flask import request
 
+lock = threading.Lock()
 
 class Observer (threading.Thread):
     def __init__(self, threadID, name, counter):
@@ -26,7 +27,7 @@ class MyFlaskApp(flask.Flask):
     def run(self, host=None, port=None, debug=None, load_dotenv=True, **options):
         if not self.debug or os.getenv('WERKZEUG_RUN_MAIN') == 'true':
             with self.app_context():
-                self.engineThread = Engine(1, "Engine", 1)
+                self.engineThread = Engine(1, "Engine", 1, lock)
                 self.engineThread.start()
                 self.observer = Observer(1, "Observer", 1)
                 self.observer.start()
@@ -41,13 +42,16 @@ app.config["DEBUG"] = True
 @app.route('/modelState', methods=['GET', 'POST'])
 def modelState():
     if request.method == 'POST':
-        if 'waterLevel' in flask.request.json:
-            app.engineThread.waterLevel = flask.request.json['waterLevel']
-        if 'inflow' in flask.request.json:
-            app.engineThread.inflow = flask.request.json['inflow'] / 1000
-        if 'currentRegulator' in flask.request.json:
-            app.engineThread.currentRegulator = flask.request.json['currentRegulator']
-        return flask.Response(status=200)
+        with lock:
+            if 'waterLevel' in flask.request.json:
+                waterLevel = int(flask.request.json['waterLevel'])
+                app.engineThread.waterLevel = waterLevel
+                app.engineThread.model.last_h = waterLevel
+            if 'inflow' in flask.request.json:
+                app.engineThread.inflow = flask.request.json['inflow'] / 1000
+            if 'currentRegulator' in flask.request.json:
+                app.engineThread.currentRegulator = flask.request.json['currentRegulator']
+            return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'waterLevel': app.engineThread.waterLevel,
@@ -58,11 +62,12 @@ def modelState():
 @app.route('/modelParameters', methods=['GET', 'POST'])
 def modelParameters():
     if request.method == 'POST':
-        if 'baseField' in flask.request.json:
-            app.engineThread.model.base_field = flask.request.json['baseField']
-        if 'setLevel' in flask.request.json:
-            app.engineThread.aim = flask.request.json['setLevel']
-        return flask.Response(status=200)
+        with lock:
+            if 'baseField' in flask.request.json:
+                app.engineThread.model.base_field = flask.request.json['baseField']
+            if 'setLevel' in flask.request.json:
+                app.engineThread.aim = flask.request.json['setLevel']
+            return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'baseField': app.engineThread.model.base_field,
@@ -73,13 +78,14 @@ def modelParameters():
 @app.route('/pidParameters', methods=['GET', 'POST'])
 def pidParameters():
     if request.method == 'POST':
-        if 'kp' in flask.request.json:
-            app.engineThread.pid.Kp = flask.request.json['kp']
-        if 'ti' in flask.request.json:
-            app.engineThread.pid.Ti = flask.request.json['ti']
-        if 'td' in flask.request.json:
-            app.engineThread.pid.Td = flask.request.json['td']
-        return flask.Response(status=200)
+        with lock:
+            if 'kp' in flask.request.json:
+                app.engineThread.pid.Kp = flask.request.json['kp']
+            if 'ti' in flask.request.json:
+                app.engineThread.pid.Ti = flask.request.json['ti']
+            if 'td' in flask.request.json:
+                app.engineThread.pid.Td = flask.request.json['td']
+            return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'kp': app.engineThread.pid.Kp,
@@ -90,9 +96,10 @@ def pidParameters():
 @app.route('/fuzzyParameters', methods=['GET', 'POST'])
 def fuzzyParameters():
     if request.method == 'POST':
-        if 'kp' in flask.request.json:
-            app.engineThread.fuzzy.base_of_regules.data = flask.request.json['baseOfRules']
-        return flask.Response(status=200)
+        with lock:
+            if 'kp' in flask.request.json:
+                app.engineThread.fuzzy.base_of_regules.data = flask.request.json['baseOfRules']
+            return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             "baseOfRules": app.engineThread.fuzzy.base_of_regules.data
