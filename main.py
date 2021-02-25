@@ -1,6 +1,8 @@
 import threading
 import time
 import flask
+
+from db_handler import DBHandler
 from engine import Engine
 import os
 from flask import request
@@ -21,6 +23,8 @@ class Observer (threading.Thread):
         while True:
             time.sleep(1)
             print(app.engineThread.waterLevel)
+            db_handler = DBHandler()
+            db_handler.save_to_db(app.engineThread.waterLevel, app.engineThread.aim)
 
 
 class MyFlaskApp(flask.Flask):
