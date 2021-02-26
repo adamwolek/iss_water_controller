@@ -12,6 +12,8 @@ class OneInOneOutModel:
 
     def next_step(self, current_q):
         last_h = self.last_h
+        if last_h < 0:
+            last_h = 0
         result = 1/self.base_field * (-self.beta * math.sqrt(last_h) + current_q) * self.period + last_h
         self.last_h = result
         return result

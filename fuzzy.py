@@ -21,8 +21,12 @@ class FuzzyRegulator:
 
     def proces(self, uchyb, loop_time):
 
-        if -0.5 < self.sum_of_uchyb + (loop_time * uchyb) < 0.5:
-            self.sum_of_uchyb += (loop_time * uchyb)
+        # if -0.5 < self.sum_of_uchyb + (loop_time * uchyb) < 0.5:
+        #     self.sum_of_uchyb += (loop_time * uchyb)
+
+        self.sum_of_uchyb += (loop_time * uchyb)
+        if self.sum_of_uchyb > 5: self.sum_of_uchyb = 5
+        elif self.sum_of_uchyb < -5: self.sum_of_uchyb = -5
 
         # Rozmywanie
         fuzzy_e_values = self.blur(uchyb)
@@ -40,7 +44,7 @@ class FuzzyRegulator:
 
         control = self.centerOfWeight(active_regules)
 
-        return control / 5
+        return control
 
     def centerOfWeight(self, active_regules):
         nominator = 0

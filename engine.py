@@ -17,7 +17,7 @@ class Engine (threading.Thread):
         self.waterLevel = 0
         self.inflow = 0
         self.currentRegulator = 'pid'
-        self.auto_change_set = True
+        self.auto_change_set = False
 
     def run(self):
         print ("Starting " + self.name)
@@ -26,11 +26,12 @@ class Engine (threading.Thread):
 
     def execute(self):
         base_field = 1.5
-        beta = 0.03
+        #beta = 0.03
+        beta = 0.6
         period = 0.5
         h_init = 0
         self.aim = 5
-        self.pid = PID(0.5, 1000, 0.01, h_init)
+        self.pid = PID(2, 10, 0.01, h_init)
         self.fuzzy = FuzzyRegulator()
         self.model = OneInOneOutModel(base_field, beta, period, h_init)
         self.last_time = time.time()
@@ -44,7 +45,7 @@ class Engine (threading.Thread):
                 self.last_time = current_time
 
                 if self.auto_change_set:
-                    self.aim = math.sin(2 * math.pi * current_time / 10) + 3
+                    self.aim = 2 * math.sin(2 * math.pi * current_time / 50) + 3
 
                 uchyb = self.aim - self.waterLevel
                 if (self.currentRegulator == 'pid'):

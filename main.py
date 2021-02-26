@@ -12,12 +12,6 @@ lock = threading.Lock()
 class Observer (threading.Thread):
     def __init__(self, threadID, name, counter):
         threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
-        self.waterLevel = 0
-        self.inflow = 0
-        self.currentRegulator = 'fuzzy'
 
     def run(self):
         while True:
@@ -53,16 +47,19 @@ def modelState():
                 app.engineThread.model.last_h = waterLevel
             if 'inflow' in flask.request.json:
                 app.engineThread.inflow = flask.request.json['inflow'] / 1000
-            if 'autoChangeSet' in flask.request.json:
-                app.engineThread.auto_change_set = flask.request.json['autoChangeSet']
+            if 'autoChangeSetSignal' in flask.request.json:
+                app.engineThread.auto_change_set = flask.request.json['autoChangeSetSignal']
             if 'currentRegulator' in flask.request.json:
                 app.engineThread.currentRegulator = flask.request.json['currentRegulator']
+            if 'setLevel' in flask.request.json:
+                app.engineThread.aim = flask.request.json['setLevel']
             return flask.Response(status=200)
     elif request.method == 'GET':
         return {
             'waterLevel': app.engineThread.waterLevel,
             'inflow': app.engineThread.inflow * 1000,
-            'currentRegulator': app.engineThread.currentRegulator
+            'currentRegulator': app.engineThread.currentRegulator,
+            'setLevel': app.engineThread.aim
         }
 
 @app.route('/modelParameters', methods=['GET', 'POST'])
@@ -103,7 +100,7 @@ def pidParameters():
 def fuzzyParameters():
     if request.method == 'POST':
         with lock:
-            if 'kp' in flask.request.json:
+            if 'baseOfRules' in flask.request.json:
                 app.engineThread.fuzzy.base_of_regules.data = flask.request.json['baseOfRules']
             return flask.Response(status=200)
     elif request.method == 'GET':
