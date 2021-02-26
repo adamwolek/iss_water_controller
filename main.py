@@ -53,6 +53,8 @@ def modelState():
                 app.engineThread.model.last_h = waterLevel
             if 'inflow' in flask.request.json:
                 app.engineThread.inflow = flask.request.json['inflow'] / 1000
+            if 'autoChangeSet' in flask.request.json:
+                app.engineThread.auto_change_set = flask.request.json['autoChangeSet']
             if 'currentRegulator' in flask.request.json:
                 app.engineThread.currentRegulator = flask.request.json['currentRegulator']
             return flask.Response(status=200)
