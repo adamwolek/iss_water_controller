@@ -1,13 +1,15 @@
 import threading
 import time
 import flask
-
 from db_handler import DBHandler
 from engine import Engine
 import os
 from flask import request
+from flask_cors import CORS, cross_origin
 
 lock = threading.Lock()
+
+
 
 class Observer (threading.Thread):
     def __init__(self, threadID, name, counter):
@@ -34,9 +36,12 @@ class MyFlaskApp(flask.Flask):
 
 
 app = MyFlaskApp(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["DEBUG"] = True
 
 
+@cross_origin()
 @app.route('/modelState', methods=['GET', 'POST'])
 def modelState():
     if request.method == 'POST':
@@ -62,6 +67,7 @@ def modelState():
             'setLevel': app.engineThread.aim
         }
 
+@cross_origin()
 @app.route('/modelParameters', methods=['GET', 'POST'])
 def modelParameters():
     if request.method == 'POST':
@@ -77,7 +83,7 @@ def modelParameters():
             'setLevel': app.engineThread.aim
         }
 
-
+@cross_origin()
 @app.route('/pidParameters', methods=['GET', 'POST'])
 def pidParameters():
     if request.method == 'POST':
@@ -96,6 +102,7 @@ def pidParameters():
             'td': app.engineThread.pid.Td
         }
 
+@cross_origin()
 @app.route('/fuzzyParameters', methods=['GET', 'POST'])
 def fuzzyParameters():
     if request.method == 'POST':

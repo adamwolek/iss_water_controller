@@ -31,7 +31,7 @@ class MixingInputsModel:
         self.c_history = [c_init]
 
     def next_step(self, q1, q2, c1, c2):
-        odplyw = 0
+        odplyw = 1
         last_v = self.v_history[-1]
         last_c = self.c_history[-1]
         next_v = (q1 + q2 - odplyw) * self.period + last_v

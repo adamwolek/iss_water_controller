@@ -26,9 +26,15 @@ class Engine (threading.Thread):
 
     def execute(self):
         base_field = 1.5
+
         #beta = 0.03
-        beta = 0.6
-        period = 0.5
+        # beta = 0.6
+        # period = 0.5
+
+        # beta = 0.0035
+        beta = 0.2
+        period = 0.05
+
         h_init = 0
         self.aim = 5
         self.pid = PID(2, 10, 0.01, h_init)
